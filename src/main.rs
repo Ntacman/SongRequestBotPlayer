@@ -38,9 +38,10 @@ fn add_song(item: Json<PlaylistItem>) -> JsonValue {
 }
 
 fn main() {
-  let dir = ::std::env::current_dir().display();
+  let dir = ::std::env::current_dir().unwrap();
+  let path:&str = &dir.to_str().unwrap().to_string();
+  println!("Static File Path is : {}/static", path);
 
-  println!("Path is {}", dir);
   unsafe{
     &playlist.push(PlaylistItem{url: "test".to_owned(), name: "test".to_owned(), index: 0});
     &playlist.push(PlaylistItem{url: "test1".to_owned(), name: "test1".to_owned(), index: 1});
@@ -49,6 +50,6 @@ fn main() {
   
   rocket::ignite()
     .mount("/api/", routes![playlist_info, add_song])
-    .mount("/", StaticFiles::from("/static"))
+    .mount("/", StaticFiles::from(format!("{}{}", path, "/static")))
     .launch();
 }
