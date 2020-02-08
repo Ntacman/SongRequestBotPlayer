@@ -3,10 +3,13 @@
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate lazy_static;
 
 use std::env;
 use rocket_contrib::json::{Json, JsonValue};
 use rocket_contrib::serve::StaticFiles;
+use std::collections::VecDeque;
+use std::sync::{Mutex, Arc};
 
 //#[get("/")]
 //fn index() -> &'static str {
@@ -20,20 +23,18 @@ struct PlaylistItem {
   index: u16,
 }
 
-static mut playlist: Vec<PlaylistItem> = Vec::new();
+lazy_static! {
+  static ref PLAYLISTMUTEX: Arc<Mutex<VecDeque<PlaylistItem>>> = Arc::new(Mutex::new(VecDeque::new()));
+}
 
 #[get("/playlist")]
 fn playlist_info() -> JsonValue {
-  json!(
-    {
-      "items": unsafe { &playlist }
-    }
-  )
+  json!({"items": "test"})
 }
 
 #[put("/add", data = "<item>")]
 fn add_song(item: Json<PlaylistItem>) -> JsonValue {
-  unsafe { &playlist.push(item.0); }
+  PLAYLISTMUTEX.clone().lock().unwrap().push_back(item.0); 
   json!({"status": "ok"})
 }
 
@@ -43,11 +44,14 @@ fn main() {
   println!("Static File Path is : {}/static", path);
 
   unsafe{
-    &playlist.push(PlaylistItem{url: "test".to_owned(), name: "test".to_owned(), index: 0});
-    &playlist.push(PlaylistItem{url: "test1".to_owned(), name: "test1".to_owned(), index: 1});
-    &playlist.push(PlaylistItem{url: "test2".to_owned(), name: "test2".to_owned(), index: 2});
+    PLAYLISTMUTEX.clone().lock().unwrap().push_back(PlaylistItem{url: "test".to_owned(), name: "test".to_owned(), index: 0});
+    PLAYLISTMUTEX.clone().lock().unwrap().push_back(PlaylistItem{url: "test1".to_owned(), name: "test1".to_owned(), index: 1});
+    PLAYLISTMUTEX.clone().lock().unwrap().push_back(PlaylistItem{url: "test2".to_owned(), name: "test2".to_owned(), index: 2});
   }
   
+  for x in PLAYLISTMUTEX.clone().lock().unwrap().iter() {
+    println!("{}{}{}", x.url, x.name, x.index);
+  }
   rocket::ignite()
     .mount("/api/", routes![playlist_info, add_song])
     .mount("/", StaticFiles::from(format!("{}{}", path, "/static")))
