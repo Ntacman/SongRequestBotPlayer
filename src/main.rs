@@ -11,10 +11,6 @@ use rocket_contrib::serve::StaticFiles;
 use std::collections::VecDeque;
 use std::sync::{Mutex, Arc};
 
-//#[get("/")]
-//fn index() -> &'static str {
-//  "Hello, world"
-//}
 
 #[derive(Serialize, Deserialize)]
 struct PlaylistItem {
@@ -29,7 +25,9 @@ lazy_static! {
 
 #[get("/playlist")]
 fn playlist_info() -> JsonValue {
-  json!({"items": "test"})
+  json!(
+    {"items": *PLAYLISTMUTEX.clone().lock().unwrap()}
+  )
 }
 
 #[put("/add", data = "<item>")]
@@ -52,6 +50,7 @@ fn main() {
   for x in PLAYLISTMUTEX.clone().lock().unwrap().iter() {
     println!("{}{}{}", x.url, x.name, x.index);
   }
+  
   rocket::ignite()
     .mount("/api/", routes![playlist_info, add_song])
     .mount("/", StaticFiles::from(format!("{}{}", path, "/static")))
