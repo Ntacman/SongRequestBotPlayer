@@ -19,7 +19,7 @@ use tera::Context;
 #[derive(Serialize, Deserialize)]
 struct PlaylistItem {
   url: String,
-  name: String
+  name: String,
 }
 
 lazy_static! {
@@ -33,6 +33,12 @@ fn playlist_info() -> JsonValue {
   )
 }
 
+#[get("/get_next_song")]
+fn get_next_song() -> JsonValue {
+  let song = PLAYLISTMUTEX.clone().lock().unwrap().pop_front();
+  json!(song)
+}
+
 #[get("/")]
 fn index() -> Template {
   let song = PLAYLISTMUTEX.clone().lock().unwrap().pop_front();
@@ -42,28 +48,15 @@ fn index() -> Template {
 
 #[put("/add", data = "<item>")]
 fn add_song(item: Json<PlaylistItem>) -> JsonValue {
-  PLAYLISTMUTEX.clone().lock().unwrap().push_back(item.0); 
+  PLAYLISTMUTEX.clone().lock().unwrap().push_back(item.0);
   json!({"status": "ok", "items": *PLAYLISTMUTEX.clone().lock().unwrap()})
 }
 
 fn main() {
-  let dir = ::std::env::current_dir().unwrap();
-  let path:&str = &dir.to_str().unwrap().to_string();
-  println!("Static File Path is : {}/static", path);
-
-  unsafe{
-    PLAYLISTMUTEX.clone().lock().unwrap().push_back(PlaylistItem{url: "test".to_owned(), name: "test".to_owned()});
-    PLAYLISTMUTEX.clone().lock().unwrap().push_back(PlaylistItem{url: "test1".to_owned(), name: "test1".to_owned()});
-    PLAYLISTMUTEX.clone().lock().unwrap().push_back(PlaylistItem{url: "test2".to_owned(), name: "test2".to_owned()});
-  }
-  
-  for x in PLAYLISTMUTEX.clone().lock().unwrap().iter() {
-    println!("{}{}", x.url, x.name);
-  }
-  
   rocket::ignite()
-    .mount("/api/", routes![playlist_info, add_song])
+    .mount("/api/", routes![playlist_info, add_song, get_next_song])
     .mount("/", routes![index])
+    .mount("/static", StaticFiles::from("static"))
     .attach(Template::fairing())
     .launch();
 }
