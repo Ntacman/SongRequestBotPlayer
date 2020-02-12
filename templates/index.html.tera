@@ -1,0 +1,7 @@
+{% extends "base" %}
+
+{% block content %}
+<script language="JavaScript" src=/static/main.js></script>
+<audio id="player" src="{{url}}" autoplay preload="auto"></audio>
+<h1 id='now-playing'>Now Playing: {{name}}</h1>
+{% endblock content %}
