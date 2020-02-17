@@ -4,6 +4,6 @@
 <script language="JavaScript" src=/static/main.js></script>
 <div>
   <p id="now-playing" style="text-align-last:center;">Now Playing: {{name}}</p>
-  <audio id="player" src="{{url}}" autoplay preload="auto" controls style="float:left; width=50px;"></audio>
+  <audio id="player" src="{{url}}" autoplay preload="auto" controls></audio>
 </div>
 {% endblock content %}
