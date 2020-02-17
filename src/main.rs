@@ -36,7 +36,10 @@ fn playlist_info() -> JsonValue {
 #[get("/get_next_song")]
 fn get_next_song() -> JsonValue {
   let song = PLAYLISTMUTEX.clone().lock().unwrap().pop_front();
-  json!(song)
+  match &song {
+    Some(x) => json!(song),
+    None => json!(song)
+  }
 }
 
 #[get("/")]

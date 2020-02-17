@@ -2,6 +2,8 @@
 
 {% block content %}
 <script language="JavaScript" src=/static/main.js></script>
-<audio id="player" src="{{url}}" autoplay preload="auto"></audio>
-<h1 id='now-playing'>Now Playing: {{name}}</h1>
+<div>
+  <p id="now-playing" style="text-align-last:center;">Now Playing: {{name}}</p>
+  <audio id="player" src="{{url}}" autoplay preload="auto" controls style="float:left; width=50px;"></audio>
+</div>
 {% endblock content %}
