@@ -55,11 +55,18 @@ fn add_song(item: Json<PlaylistItem>) -> JsonValue {
   json!({"status": "ok", "items": *PLAYLISTMUTEX.clone().lock().unwrap()})
 }
 
+#[put("/remove", data = "<item>")]
+fn remove_song(item: Json<PlaylistItem>) -> JsonValue {
+  PLAYLISTMUTEX.clone().lock().unwrap().retain(|x| x.name != item.0.name);
+  json!({"status": "ok", "items": *PLAYLISTMUTEX.clone().lock().unwrap()})
+}
+
 fn main() {
   rocket::ignite()
     .mount("/api/", routes![playlist_info, add_song, get_next_song])
     .mount("/", routes![index])
     .mount("/static", StaticFiles::from("static"))
+    .mount("/queue", StaticFiles::from("queue"))
     .attach(Template::fairing())
     .launch();
 }
